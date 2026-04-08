@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HttpMockBench — Client API, Logger HTTP &amp; Mocker pour Chrome</title>
+  <link rel="icon" type="image/png" sizes="128x128" href="../img/icon-128.png" />
+  <link rel="shortcut icon" href="../img/icon-128.png" />
+  <meta name="description" content="Une extension Chrome combinant un client API, un logger HTTP en temps réel et un mocker de requêtes — tout en un seul panneau DevTools." />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --accent: #00d8ff;
+      --accent-pro: #f59e0b;
+      --bg: #0d1117;
+      --bg-card: #161b22;
+      --bg-card2: #1e2530;
+      --text: #e6edf3;
+      --muted: #7d8590;
+      --border: #21262d;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Layout ── */
+    .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+    /* ── Nav ── */
+    nav {
+      border-bottom: 1px solid var(--border);
+      padding: 16px 0;
+    }
+    nav .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      font-weight: 700;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text);
+    }
+    .nav-logo .logo-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+    }
+    .nav-links { display: flex; gap: 24px; font-size: 0.9rem; color: var(--muted); align-items: center; }
+    .nav-links a { color: var(--muted); }
+    .nav-links a:hover { color: var(--text); text-decoration: none; }
+
+    .lang-switch {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.05em;
+    }
+    .lang-switch:hover { color: var(--text); text-decoration: none; }
+
+    /* ── Hero ── */
+    .hero {
+      text-align: center;
+      padding: 80px 0 64px;
+    }
+    .hero-badge {
+      display: inline-block;
+      background: rgba(0, 216, 255, 0.1);
+      border: 1px solid rgba(0, 216, 255, 0.3);
+      color: #00d8ff;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 99px;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, #e6edf3 30%, #00d8ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: 1.15rem;
+      color: var(--muted);
+      max-width: 580px;
+      margin: 0 auto 36px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.85; text-decoration: none; }
+    .btn-primary {
+      background: linear-gradient(135deg, #0099bb, #00d8ff);
+      color: #0d1117;
+    }
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+    /* ── Carousel ── */
+    .carousel-section {
+      padding: 56px 0;
+      overflow: hidden;
+    }
+    .carousel {
+      position: relative;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+    .carousel-viewport {
+      overflow: hidden;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: 0 0 0 1px rgba(0, 216, 255, 0.1), 0 24px 64px rgba(0, 0, 0, 0.6);
+    }
+    .carousel-track {
+      display: flex;
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .carousel-slide {
+      min-width: 100%;
+      position: relative;
+    }
+    .carousel-slide img {
+      width: 100%;
+      display: block;
+    }
+    .carousel-caption {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 10px 16px;
+      background: linear-gradient(transparent, rgba(13, 17, 23, 0.88));
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-align: left;
+    }
+    .carousel-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(22, 27, 34, 0.85);
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 2;
+      transition: background 0.15s;
+    }
+    .carousel-btn:hover { background: var(--bg-card2); }
+    .carousel-btn.prev { left: 0; }
+    .carousel-btn.next { right: 0; }
+    .carousel-dots {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .carousel-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--border);
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .carousel-dot.active {
+      background: var(--accent);
+      transform: scale(1.3);
+    }
+
+    /* ── Privacy strip ── */
+    .privacy-strip {
+      border-top: 1px solid rgba(0, 216, 255, 0.12);
+      border-bottom: 1px solid rgba(0, 216, 255, 0.12);
+      background: rgba(0, 216, 255, 0.04);
+      padding: 28px 0;
+    }
+    .privacy-strip .container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .privacy-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      white-space: nowrap;
+      padding-right: 20px;
+      border-right: 1px solid rgba(0, 216, 255, 0.2);
+      margin-right: 8px;
+    }
+    .privacy-items {
+      display: flex;
+      gap: 28px;
+      flex-wrap: wrap;
+    }
+    .privacy-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .privacy-item svg { color: var(--accent); flex-shrink: 0; }
+
+    /* ── Features ── */
+    section { padding: 64px 0; }
+    .section-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+    .section-title {
+      font-size: 1.7rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .section-sub {
+      color: var(--muted);
+      max-width: 520px;
+      margin-bottom: 40px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    .card-icon {
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+    }
+    .card h3 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .card p {
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* ── Pro section ── */
+    .pro-section {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(245, 158, 11, 0.05) 0%, transparent 100%);
+    }
+    .pro-section .section-label { color: var(--accent-pro); }
+    .pro-section .section-title span {
+      background: linear-gradient(135deg, #f59e0b, #fcd34d);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .card-pro {
+      background: var(--bg-card2);
+      border-color: rgba(245, 158, 11, 0.25);
+    }
+    .card-pro h3::before {
+      content: '✦ ';
+      color: var(--accent-pro);
+      font-size: 0.7rem;
+    }
+    .badge-soon {
+      display: inline-block;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      color: #fbbf24;
+      padding: 2px 7px;
+      border-radius: 4px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    /* ── Support ── */
+    .support-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+      margin-top: 32px;
+    }
+    .support-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .support-card h3 { font-size: 1rem; font-weight: 600; }
+    .support-card p { font-size: 0.85rem; color: var(--muted); flex: 1; }
+    .support-card a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 0;
+    }
+    footer .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    footer .footer-left { font-size: 0.85rem; color: var(--muted); }
+    footer .footer-links { display: flex; gap: 20px; font-size: 0.85rem; }
+    footer .footer-links a { color: var(--muted); }
+    footer .footer-links a:hover { color: var(--text); text-decoration: none; }
+
+    /* ── Lightbox ── */
+    .lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.88);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      cursor: zoom-out;
+      backdrop-filter: blur(4px);
+    }
+    .lightbox.open { display: flex; }
+    .lightbox img {
+      max-width: 92vw;
+      max-height: 90vh;
+      border-radius: 8px;
+      box-shadow: 0 32px 80px rgba(0, 0, 0, 0.7);
+      object-fit: contain;
+    }
+    .lightbox-close {
+      position: absolute;
+      top: 16px;
+      right: 20px;
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.8rem;
+      cursor: pointer;
+      line-height: 1;
+      opacity: 0.7;
+    }
+    .lightbox-close:hover { opacity: 1; }
+    .carousel-slide img { cursor: zoom-in; }
+
+    /* ── Mobile nav ── */
+    .nav-hamburger {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--text);
+      cursor: pointer;
+      padding: 4px;
+      line-height: 0;
+    }
+
+    @media (max-width: 620px) {
+      .nav-hamburger { display: flex; align-items: center; }
+
+      nav { position: relative; }
+
+      .nav-links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--bg-card);
+        border-bottom: 1px solid var(--border);
+        flex-direction: column;
+        gap: 0;
+        padding: 8px 0;
+        z-index: 100;
+      }
+      .nav-links.open { display: flex; }
+      .nav-links a {
+        padding: 12px 24px;
+        width: 100%;
+        font-size: 0.95rem;
+      }
+      .lang-switch {
+        margin: 4px 24px 8px;
+        width: fit-content;
+      }
+
+      .hero { padding: 48px 0 36px; }
+      .hero p { font-size: 1rem; }
+      .hero-actions { flex-direction: column; align-items: center; }
+
+      .privacy-strip .container { flex-direction: column; align-items: flex-start; gap: 16px; }
+      .privacy-label { border-right: none; padding-right: 0; margin-right: 0; border-bottom: 1px solid rgba(0,216,255,0.2); padding-bottom: 10px; width: 100%; }
+      .privacy-items { gap: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Lightbox -->
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Zoom image">
+    <button class="lightbox-close" id="lightboxClose" aria-label="Fermer">&#x2715;</button>
+    <img id="lightboxImg" src="" alt="" />
+  </div>
+
+  <!-- Nav -->
+  <nav>
+    <div class="container">
+      <div class="nav-logo">
+        <img class="logo-icon" src="../img/icon-128.png" alt="Icône HttpMockBench" />
+        HttpMockBench
+      </div>
+      <button class="nav-hamburger" id="navHamburger" aria-label="Menu" aria-expanded="false">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+      <div class="nav-links" id="navLinks">
+        <a href="#features">Fonctionnalités</a>
+        <a href="#pro">Pro</a>
+        <a href="#support">Support</a>
+        <a href="privacy-policy.html">Confidentialité</a>
+        <a href="/en/" class="lang-switch">EN</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-badge">Extension Chrome · MV3</div>
+      <h1>Client API, Logger HTTP<br/>&amp; Mocker de requêtes</h1>
+      <p>Une seule extension DevTools pour tester vos APIs, capturer le trafic HTTP en temps réel et mocker n'importe quelle requête — sans toucher à votre code.</p>
+      <div class="hero-actions">
+        <a href="https://chromewebstore.google.com/detail/httpmockbench/PLACEHOLDER_ID?hl=fr" target="_blank" rel="noopener" class="btn btn-primary">
+          ⬇ Ajouter à Chrome — c'est gratuit
+        </a>
+        <a href="#features" class="btn btn-ghost">Voir les fonctionnalités</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Privacy strip -->
+  <div class="privacy-strip">
+    <div class="container">
+      <span class="privacy-label">Vie privée</span>
+      <div class="privacy-items">
+        <span class="privacy-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Aucun tracking ni analytics
+        </span>
+        <span class="privacy-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 0 20M12 2a15.3 15.3 0 0 0 0 20"/></svg>
+          Aucun appel externe
+        </span>
+        <span class="privacy-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Vos données restent sur votre machine
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screenshots carousel -->
+  <div class="carousel-section">
+    <div class="carousel">
+      <div class="carousel-viewport">
+        <div class="carousel-track" id="carouselTrack">
+          <div class="carousel-slide">
+            <img src="../img/screen-1-api-client.png" alt="Client API — Envoi de requêtes HTTP avec en-têtes, auth et corps" />
+            <div class="carousel-caption">Client API — Constructeur de requêtes complet avec environnements et collections</div>
+          </div>
+          <div class="carousel-slide">
+            <img src="../img/screen-2-logger.png" alt="Logger HTTP — Capture du trafic réseau en temps réel" />
+            <div class="carousel-caption">Logger HTTP — Capturez et inspectez chaque requête en temps réel depuis les DevTools</div>
+          </div>
+          <div class="carousel-slide">
+            <img src="../img/screen-3-mocker.png" alt="Mocker — Intercepter et remplacer les réponses HTTP" />
+            <div class="carousel-caption">Mocker — Interceptez fetch &amp; XHR, renvoyez des réponses personnalisées instantanément</div>
+          </div>
+          <div class="carousel-slide">
+            <img src="../img/screen-4-freeze.png" alt="Freeze to Mock — Transformer une requête loggée en règle de mock" />
+            <div class="carousel-caption">Freeze to Mock — Un clic pour transformer une réponse loggée en règle de mock active</div>
+          </div>
+        </div>
+      </div>
+      <button class="carousel-btn prev" id="carouselPrev" aria-label="Précédent">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <button class="carousel-btn next" id="carouselNext" aria-label="Suivant">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <div class="carousel-dots" id="carouselDots"></div>
+    </div>
+  </div>
+
+  <!-- Free features -->
+  <section id="features">
+    <div class="container">
+      <div class="section-label">Gratuit</div>
+      <div class="section-title">Tout ce dont vous avez besoin, d'emblée</div>
+      <p class="section-sub">Sans proxy, sans configuration, sans serveur. Fonctionne directement dans votre navigateur.</p>
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-icon">⚡</div>
+          <h3>Client API</h3>
+          <p>Envoyez GET, POST, PUT, DELETE et plus avec un contrôle total sur les en-têtes, le corps et l'authentification (Bearer, Basic, API key).</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">📡</div>
+          <h3>Logger HTTP en temps réel</h3>
+          <p>Capturez chaque requête de l'onglet courant — URL, méthode, statut, timing et en-têtes — en direct dans les DevTools.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🎭</div>
+          <h3>Mocker de requêtes</h3>
+          <p>Interceptez les appels fetch et XHR et renvoyez des réponses personnalisées, des codes de statut ou ajoutez de la latence — sans toucher à votre code.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🔀</div>
+          <h3>Règles de redirection</h3>
+          <p>Redirigez n'importe quelle URL vers une autre cible. Idéal pour tester staging vs production ou permuter des endpoints CDN.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">❄️</div>
+          <h3>Freeze to Mock</h3>
+          <p>Cliquez sur n'importe quelle réponse dans le Logger et préremplissez instantanément une règle de mock avec son statut, ses en-têtes et son corps.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">📁</div>
+          <h3>Collections</h3>
+          <p>Organisez vos requêtes sauvegardées en collections. Partagez, exportez et importez en JSON.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🌍</div>
+          <h3>Environnements &amp; variables</h3>
+          <p>Définissez des paramètres <code>{{variable}}</code> et basculez instantanément entre dev, staging et production.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">📋</div>
+          <h3>Import &amp; export cURL</h3>
+          <p>Collez une commande cURL pour préremplir le constructeur de requêtes. Exportez n'importe quelle requête en commande cURL prête à l'emploi.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🕓</div>
+          <h3>Historique des requêtes</h3>
+          <p>Chaque requête envoyée est sauvegardée dans l'historique. Parcourez, rejouez et inspectez les réponses précédentes à tout moment.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pro features -->
+  <section id="pro" class="pro-section">
+    <div class="container">
+      <div class="section-label">Pro</div>
+      <div class="section-title">Débloquez des <span>super-pouvoirs</span></div>
+      <p class="section-sub">Pour les développeurs qui ont besoin de plus de règles, plus de collections, plus de contrôle — et des fonctionnalités puissantes à venir.</p>
+      <div class="grid-3">
+        <div class="card card-pro">
+          <div class="card-icon">📏</div>
+          <h3>Règles de mock illimitées</h3>
+          <p>Le plan gratuit est limité à 10 règles. Pro supprime la limite pour mocker des surfaces d'API entières.</p>
+        </div>
+        <div class="card card-pro">
+          <div class="card-icon">🗂️</div>
+          <h3>Collections illimitées</h3>
+          <p>Organisez tous vos projets avec autant de collections que nécessaire — sans la limite de 3.</p>
+        </div>
+        <div class="card card-pro">
+          <div class="card-icon">🌐</div>
+          <h3>Environnements illimités</h3>
+          <p>Basculez entre autant d'environnements que votre workflow le demande. Le plan gratuit en inclut 3.</p>
+        </div>
+        <div class="card card-pro">
+          <div class="card-icon">🕓</div>
+          <h3>Historique illimité</h3>
+          <p>Le plan gratuit conserve les 50 dernières requêtes. Pro vous donne un historique illimité avec recherche full-text sur toutes les réponses passées.</p>
+        </div>
+        <div class="card card-pro">
+          <div class="card-icon">📥</div>
+          <h3>Import Postman / Insomnia / Bruno <span class="badge-soon">Bientôt</span></h3>
+          <p>Migrez vos collections existantes depuis Postman v2.1, Insomnia et Bruno en un clic.</p>
+        </div>
+        <div class="card card-pro">
+          <div class="card-icon">🔁</div>
+          <h3>Stateful mocking <span class="badge-soon">Bientôt</span></h3>
+          <p>Définissez des séquences de réponses ordonnées — le 1er appel retourne 200, le 2ème retourne 429 — pour tester votre logique de retry.</p>
+        </div>
+        <div class="card card-pro">
+          <div class="card-icon">⚗️</div>
+          <h3>Templates de réponses dynamiques <span class="badge-soon">Bientôt</span></h3>
+          <p>Utilisez <code>{{uuid}}</code>, <code>{{timestamp}}</code>, <code>{{randomInt}}</code> dans vos bodies mockés pour générer des données réalistes et dynamiques.</p>
+        </div>
+        <div class="card card-pro">
+          <div class="card-icon">📝</div>
+          <h3>Scripts pre/post requête <span class="badge-soon">Bientôt</span></h3>
+          <p>Exécutez du JavaScript avant l'envoi pour générer des tokens dynamiquement, ou extrayez des valeurs des réponses dans vos variables.</p>
+        </div>
+        <div class="card card-pro">
+          <div class="card-icon">🔎</div>
+          <h3>Matching regex d'URL <span class="badge-soon">Bientôt</span></h3>
+          <p>Utilisez des expressions régulières dans les patterns de règles mock pour couvrir des familles d'endpoints avec une seule règle.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Support -->
+  <section id="support">
+    <div class="container">
+      <div class="section-label">Support</div>
+      <div class="section-title">Nous sommes là pour vous aider</div>
+      <div class="support-grid">
+        <div class="support-card">
+          <h3>🐛 Signaler un bug</h3>
+          <p>Vous avez trouvé un problème ? Ouvrez un ticket sur GitHub — nous examinons chaque rapport.</p>
+          <a href="https://github.com/valentinconan/httpmockbench-site/issues/new?template=bug_report.md" target="_blank">
+            Ouvrir un rapport de bug →
+          </a>
+        </div>
+        <div class="support-card">
+          <h3>💡 Demander une fonctionnalité</h3>
+          <p>Une idée pour améliorer HttpMockBench ? Nous serions ravis de l'entendre.</p>
+          <a href="https://github.com/valentinconan/httpmockbench-site/issues/new?template=feature_request.md" target="_blank">
+            Suggérer une fonctionnalité →
+          </a>
+        </div>
+        <div class="support-card">
+          <h3>📬 Contact</h3>
+          <p>Pour la facturation, les licences ou les demandes privées, contactez-nous directement par e-mail.</p>
+          <a href="mailto:support@httpmockbench.com">
+            support@httpmockbench.com →
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-left">© 2026 HttpMockBench. Tous droits réservés.</div>
+      <div class="footer-links">
+        <a href="privacy-policy.html">Politique de confidentialité</a>
+        <a href="https://github.com/valentinconan/httpmockbench-site/issues" target="_blank">Issues GitHub</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Lightbox
+    (function () {
+      const lightbox = document.getElementById('lightbox');
+      const lightboxImg = document.getElementById('lightboxImg');
+
+      document.querySelectorAll('.carousel-slide img').forEach(function (img) {
+        img.addEventListener('click', function () {
+          lightboxImg.src = img.src;
+          lightboxImg.alt = img.alt;
+          lightbox.classList.add('open');
+          document.body.style.overflow = 'hidden';
+        });
+      });
+
+      function closeLightbox() {
+        lightbox.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+
+      document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
+      lightbox.addEventListener('click', function (e) {
+        if (e.target === lightbox) closeLightbox();
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeLightbox();
+      });
+    })();
+
+    // Menu hamburger
+    (function () {
+      const btn = document.getElementById('navHamburger');
+      const links = document.getElementById('navLinks');
+      btn.addEventListener('click', function () {
+        const open = links.classList.toggle('open');
+        btn.setAttribute('aria-expanded', open);
+      });
+      links.querySelectorAll('a').forEach(function (a) {
+        a.addEventListener('click', function () {
+          links.classList.remove('open');
+          btn.setAttribute('aria-expanded', 'false');
+        });
+      });
+    })();
+  </script>
+
+  <script>
+    (function () {
+      const track = document.getElementById('carouselTrack');
+      const dotsContainer = document.getElementById('carouselDots');
+      const slides = track.querySelectorAll('.carousel-slide');
+      const total = slides.length;
+      let current = 0;
+
+      slides.forEach((_, i) => {
+        const dot = document.createElement('button');
+        dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
+        dot.setAttribute('aria-label', 'Diapositive ' + (i + 1));
+        dot.addEventListener('click', () => goTo(i));
+        dotsContainer.appendChild(dot);
+      });
+
+      function goTo(index) {
+        current = (index + total) % total;
+        track.style.transform = 'translateX(-' + current * 100 + '%)';
+        dotsContainer.querySelectorAll('.carousel-dot').forEach((d, i) => {
+          d.classList.toggle('active', i === current);
+        });
+      }
+
+      document.getElementById('carouselPrev').addEventListener('click', () => goTo(current - 1));
+      document.getElementById('carouselNext').addEventListener('click', () => goTo(current + 1));
+
+      let startX = 0;
+      track.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, { passive: true });
+      track.addEventListener('touchend', e => {
+        const delta = startX - e.changedTouches[0].clientX;
+        if (Math.abs(delta) > 40) goTo(current + (delta > 0 ? 1 : -1));
+      });
+    })();
+  </script>
+
+</body>
+</html>

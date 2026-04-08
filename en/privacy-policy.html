@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy — HttpMockBench</title>
+  <link rel="icon" type="image/png" sizes="128x128" href="../img/icon-128.png" />
+  <link rel="shortcut icon" href="../img/icon-128.png" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --accent: #00d8ff;
+      --bg: #0d1117;
+      --bg-card: #161b22;
+      --text: #e6edf3;
+      --muted: #7d8590;
+      --border: #21262d;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    a { color: var(--accent); }
+
+    nav {
+      border-bottom: 1px solid var(--border);
+      padding: 16px 0;
+    }
+    nav .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      font-weight: 700;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .nav-logo .logo-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+    }
+
+    .lang-switch {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.05em;
+      text-decoration: none;
+    }
+    .lang-switch:hover { color: var(--text); }
+
+    .container { max-width: 740px; margin: 0 auto; padding: 0 24px; }
+
+    .content { padding: 56px 0 80px; }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    .last-updated {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 40px;
+    }
+
+    h2 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin: 36px 0 12px;
+      color: var(--text);
+    }
+    p {
+      font-size: 0.95rem;
+      color: #b0bec8;
+      margin-bottom: 12px;
+    }
+    ul {
+      padding-left: 20px;
+      margin-bottom: 12px;
+    }
+    ul li {
+      font-size: 0.95rem;
+      color: #b0bec8;
+      margin-bottom: 6px;
+    }
+    .highlight {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin: 24px 0;
+      font-size: 0.95rem;
+    }
+    .highlight strong { color: var(--text); }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 24px 0;
+    }
+    footer .container {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="container">
+      <a href="/en/" class="nav-logo">
+        <img class="logo-icon" src="../img/icon-128.png" alt="HttpMockBench icon" />
+        HttpMockBench
+      </a>
+      <a href="/fr/privacy-policy.html" class="lang-switch">FR</a>
+    </div>
+  </nav>
+
+  <div class="content">
+    <div class="container">
+      <h1>Privacy Policy</h1>
+      <p class="last-updated">Last updated: April 4, 2026</p>
+
+      <div class="highlight">
+        <strong>Summary:</strong> HttpMockBench processes all data locally on your device. We do not collect, transmit or sell your personal data, your requests, or the content of intercepted responses.
+      </div>
+
+      <h2>1. Who we are</h2>
+      <p>HttpMockBench is a Chrome browser extension developed and maintained as an independent project. For any privacy-related questions, contact us at <a href="mailto:support@httpmockbench.com">support@httpmockbench.com</a>.</p>
+
+      <h2>2. Data we do NOT collect</h2>
+      <p>HttpMockBench does not collect, store on external servers, or transmit:</p>
+      <ul>
+        <li>The content of any HTTP request or response you send or inspect</li>
+        <li>The URLs you visit or test</li>
+        <li>Any personally identifiable information</li>
+        <li>Browsing history or behavior analytics</li>
+      </ul>
+
+      <h2>3. Data stored locally on your device</h2>
+      <p>HttpMockBench stores the following data exclusively in your browser's local storage (IndexedDB and <code>chrome.storage.local</code>), which never leaves your device:</p>
+      <ul>
+        <li><strong>Mock rules:</strong> the interception rules you create, including URL patterns, response bodies and headers.</li>
+        <li><strong>Collections &amp; saved requests:</strong> HTTP requests you save for later reuse.</li>
+        <li><strong>Environments &amp; variables:</strong> variable sets used to parameterize your requests.</li>
+        <li><strong>Request history:</strong> the last 50 requests you sent, stored for your convenience. Clearable at any time from Settings.</li>
+        <li><strong>User preferences:</strong> panel layout, active environment and other display settings.</li>
+        <li><strong>License status:</strong> whether your account has an active Pro subscription (cached locally to avoid repeated network calls).</li>
+      </ul>
+
+      <h2>4. License verification (Pro tier)</h2>
+      <p>If you purchase a Pro license, the extension communicates with <a href="https://extensionpay.com" target="_blank">ExtensionPay</a> solely to verify your license status. This involves:</p>
+      <ul>
+        <li>Sending your Chrome identity token to ExtensionPay's servers to check subscription status.</li>
+        <li>No request content, mock rule data, or browsing data is included in this request.</li>
+      </ul>
+      <p>ExtensionPay's own privacy policy applies to this interaction: <a href="https://extensionpay.com/privacy" target="_blank">extensionpay.com/privacy</a>.</p>
+
+      <h2>5. Permissions used</h2>
+      <p>The extension requests the following Chrome permissions, each with a specific and limited purpose:</p>
+      <ul>
+        <li><strong>scripting / activeTab:</strong> to inject the request interceptor into the current tab when mocking is active.</li>
+        <li><strong>webRequest:</strong> observe-only, used to capture HTTP traffic for the real-time logger.</li>
+        <li><strong>declarativeNetRequest:</strong> to redirect requests matching redirect rules.</li>
+        <li><strong>storage:</strong> to save your rules, collections, environments, and history locally.</li>
+        <li><strong>sidePanel:</strong> to display the API client and mocker in the browser side panel.</li>
+        <li><strong>devtools:</strong> to provide the HTTP Logger panel in Chrome DevTools.</li>
+      </ul>
+
+      <h2>6. Third-party services</h2>
+      <p>HttpMockBench does not integrate any advertising network, analytics platform, or data broker. The only third-party service involved is ExtensionPay, used exclusively for Pro license management (see section 4).</p>
+
+      <h2>7. Changes to this policy</h2>
+      <p>We may update this privacy policy as the extension evolves. Changes will be reflected by updating the "Last updated" date at the top of this page.</p>
+
+      <h2>8. Contact</h2>
+      <p>For any questions regarding this privacy policy, please contact us at <a href="mailto:support@httpmockbench.com">support@httpmockbench.com</a> or open an issue on <a href="https://github.com/valentinconan/httpmockbench-site/issues" target="_blank">GitHub</a>.</p>
+    </div>
+  </div>
+
+  <footer>
+    <div class="container">
+      <span>© 2026 HttpMockBench</span>
+      <a href="/en/">← Back to home</a>
+    </div>
+  </footer>
+
+</body>
+</html>
